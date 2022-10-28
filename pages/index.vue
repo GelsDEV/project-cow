@@ -892,13 +892,13 @@ body {
 
 @media (max-width: 768px) {
   .marvel-device.nexus5 {
-    border-radius: 0;
+    border-radius: 0 !important;
     flex: none;
-    padding: 0;
+    padding: 0 !important;
     max-width: none;
     overflow: hidden;
-    height: 100%;
-    width: 100%;
+    height: 100% !important;
+    width: 100% !important;
   }
 
   .marvel-device > .screen .chat {
