@@ -2,7 +2,10 @@
 #
 # To get started with Nuxt see: https://nuxtjs.org/docs/get-started/installation
 #
-name: Deploy Nuxt site to Pages
+name: 🚀 Deploy Nuxt site to Pages
+
+env:
+  DEPLOY_ENV: "GH_PAGES"
 
 on:
   # Runs on pushes targeting the default branch
