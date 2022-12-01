@@ -331,6 +331,7 @@ const addReceivedMessage = (value, img?) => {
 const onChatInput = () => {
   const length = messages.value.length;
   let input = chat.value.toLocaleLowerCase();
+  if (!input) return;
   messages.value.push({
     readed: false,
     value: chat.value,
