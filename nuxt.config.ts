@@ -2,7 +2,6 @@ const title = "Dunklekuh — Just another Muh Muh";
 const description = "Oh, when the workin' day is done, cows just wanna have fun...";
 const url = "https://dunklekuh.de";
 const image = url + "/avatar.jpg";
-const baseURL = process.env.DEPLOY_ENV === 'GH_PAGES' ? { baseURL: '/project-cow/' } : {};
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -43,9 +42,8 @@ export default defineNuxtConfig({
             style: [],
             script: [],
             noscript: []
-        },
-        ...baseURL
+        }
     },
     ssr: false,
-    target: "static",
+    target: "static"
 })

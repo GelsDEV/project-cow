@@ -5,7 +5,7 @@
 name: 🚀 Deploy Nuxt site to Pages
 
 env:
-  DEPLOY_ENV: "GH_PAGES"
+  NUXT_APP_BASE_URL: "/project-cow/"
 
 on:
   # Runs on pushes targeting the default branch
