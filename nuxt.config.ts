@@ -2,6 +2,7 @@ const title = "Dunklekuh — Just another Muh Muh";
 const description = "Oh, when the workin' day is done, cows just wanna have fun...";
 const url = "https://dunklekuh.de";
 const image = url + "/avatar.jpg";
+const routerBase = process.env.DEPLOY_ENV === 'GH_PAGES' ? { router: { base: '/project-cow/' } } : {};
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -45,5 +46,7 @@ export default defineNuxtConfig({
         }
     },
     ssr: false,
-    target: "static"
+    target: "static",
+
+    ...routerBase
 })
