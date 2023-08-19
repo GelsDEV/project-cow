@@ -155,6 +155,8 @@ interface message {
 
 /* Declarations */
 
+/*
+
 const memes = ref([
   'You were hugging an old man with a beard screaming\n"DUMBLEDORE YOU\'RE ALIVE!"',
   'Dude, you smashed my turtle saying "I\'M MARIO BROS!"',
@@ -301,6 +303,7 @@ const coffeeTrigger = [
   "hot",
 ];
 const startupIdeaTrigger = ["startup", "business", "idea", "idee", "geschäft"];
+*/
 
 const messages = ref([] as Array<message>);
 const chat = ref("");
@@ -308,17 +311,52 @@ const deviceTime = ref(moment().format("H:mm"));
 
 /* Methods */
 
-const scrollTop = (time?) => {
+const scrollTop = (time?: number | undefined) => {
   setTimeout(
     () => {
-      var conversation = document.querySelector(".conversation-container");
+      var conversation = document.querySelector(
+        ".conversation-container"
+      ) as any;
       conversation.scrollTop = conversation.scrollHeight;
     },
     time ? time : 0
   );
 };
 
-const addReceivedMessage = (value, img?) => {
+const askCowGPT = () => {
+  const req = { messages: [] as Array<{ role: string; content: string }> };
+
+  messages.value.forEach((message) => {
+    req.messages.push({
+      role: message.type === messageType.Sender ? "user" : "assistant",
+      content: message.value,
+    });
+  });
+
+  $fetch("https://api.gels.dev/gpt/cow", {
+    method: "POST",
+    body: JSON.stringify(req),
+  }).then((resp: any) => {
+    if (resp.ok) {
+      messages.value.push({
+        readed: false,
+        value: resp.data.content,
+        time: moment().format("H:mm"),
+        type: messageType.Received,
+      });
+    } else {
+      messages.value.push({
+        readed: false,
+        value: resp.message,
+        time: moment().format("H:mm"),
+        type: messageType.Received,
+      });
+    }
+    scrollTop(500);
+  });
+};
+
+const addReceivedMessage = (value: string, img?: string | undefined) => {
   messages.value.push({
     readed: false,
     time: moment().format("H:mm"),
@@ -341,6 +379,9 @@ const onChatInput = () => {
   setTimeout(() => {
     messages.value[length].readed = true;
   }, 500);
+  askCowGPT();
+
+  /*
 
   setTimeout(async () => {
     if (memeTrigger.some((e) => input.includes(e))) {
@@ -415,6 +456,8 @@ const onChatInput = () => {
     scrollTop();
   }, 1000);
 
+  */
+
   scrollTop();
 
   chat.value = "";
@@ -425,28 +468,38 @@ const onChatInput = () => {
 onMounted(() => {
   messages.value.push({
     readed: true,
-    value: "What happened last night?",
+    value: "Was ist letzte Nacht passiert?",
     time: moment().format("H:mm"),
     type: messageType.Sender,
   });
   messages.value.push({
     readed: false,
-    value: "You were drunk.",
+    value: "Du warst betrunken.",
     time: moment().format("H:mm"),
     type: messageType.Received,
   });
   messages.value.push({
     readed: true,
-    value: "No I wasn't.",
+    value: "Nein, das war ich nicht.",
     time: moment().format("H:mm"),
     type: messageType.Sender,
   });
+  /*
   messages.value.push({
     readed: false,
     value: memes.value[Math.floor(Math.random() * memes.value.length)],
     time: moment().format("H:mm"),
     type: messageType.Received,
   });
+  messages.value.push({
+    readed: true,
+    value: "Sprich Deutsch du Hurensohn",
+    time: moment().format("H:mm"),
+    type: messageType.Sender,
+  });
+  */
+
+  askCowGPT();
 
   setInterval(function () {
     deviceTime.value = moment().format("H:mm");
