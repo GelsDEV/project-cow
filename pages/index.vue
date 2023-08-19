@@ -788,6 +788,7 @@ body {
 }
 
 .metadata .tick svg:first-child {
+  opacity: 0;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   -webkit-transform: perspective(800px) rotateY(180deg);
@@ -802,6 +803,7 @@ body {
 }
 
 .metadata .tick-animation svg:first-child {
+  opacity: 1;
   -webkit-transform: perspective(800px) rotateY(0);
   transform: perspective(800px) rotateY(0);
 }
