@@ -54,7 +54,9 @@ onMounted(() => {
                 }).format(new Date(obj.createdAt)) }}</h2>
                 <div class="details">
                     <div class="badge status" :class="obj.status">{{ obj.status }}</div>
-                    <div class="badge">{{ obj.logobject }}</div>
+                    <div class="badge origin">{{ obj.logobject }}</div>
+                    <div v-show="obj.msg.ip" class="badge ip">{{ obj.msg.ip }}</div>
+                    <div class="badge">{{ obj.msg.id }}</div>
                 </div>
             </div>
             <div v-for="(message, i) in obj.debug.messages" :key="i" class="message">
@@ -173,8 +175,9 @@ h3 {
     background-color: rgb(253 246 178);
 }
 
-.history .header .details .status {
-
+.history .header .details .status,
+.history .header .details .origin,
+.history .header .details .ip {
     margin-right: 0.5em;
 }
 
