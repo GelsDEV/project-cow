@@ -40,7 +40,12 @@ export default defineNuxtConfig({
                 },
             ],
             style: [],
-            script: [],
+            script: [
+                {
+                    type: "module",
+                    src: "https://md-block.verou.me/md-block.js",
+                }
+            ],
             noscript: []
         }
     },
