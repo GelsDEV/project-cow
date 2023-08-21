@@ -24,28 +24,9 @@ export default defineNuxtConfig({
                 { name: "msapplication-navbutton-color", content: "#004e45" },
                 { name: "apple-mobile-web-app-status-bar-style", content: "#004e45" },
             ],
-            link: [
-                {
-                    rel: "stylesheet",
-                    href: "assets/css/material-design-iconic-font.min.css",
-                },
-                {
-                    rel: "stylesheet",
-                    href: "assets/css/devices.min.css",
-                },
-                {
-                    rel: "icon",
-                    href: "https://troll.dunklekuh.de/trollcow.png",
-                    type: "image/png",
-                },
-            ],
+            link: [],
             style: [],
-            script: [
-                {
-                    type: "module",
-                    src: "https://md-block.verou.me/md-block.js",
-                }
-            ],
+            script: [],
             noscript: []
         }
     },

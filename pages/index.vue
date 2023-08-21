@@ -27,96 +27,48 @@
           <div class="chat">
             <div class="chat-container">
               <div class="user-bar">
-                <div
-                  class="back"
-                  onclick="location.href='https://eject.dunklekuh.de';"
-                  style="cursor: pointer"
-                >
+                <div class="back" onclick="location.href='https://eject.dunklekuh.de';" style="cursor: pointer">
                   <i class="zmdi zmdi-arrow-left"></i>
                 </div>
-                <div
-                  class="avatar"
-                  onclick="location.href='https://eject.dunklekuh.de';"
-                  style="cursor: pointer"
-                >
+                <div class="avatar" onclick="location.href='https://eject.dunklekuh.de';" style="cursor: pointer">
                   <img src="/avatar.jpg" alt="Avatar" />
                 </div>
-                <div
-                  class="name"
-                  onclick="location.href='https://eject.dunklekuh.de';"
-                  style="cursor: pointer"
-                >
+                <div class="name" onclick="location.href='https://eject.dunklekuh.de';" style="cursor: pointer">
                   <span>Dunklekuh</span>
                   <span class="status">online</span>
                 </div>
                 <div class="actions more">
-                  <i
-                    class="zmdi zmdi-more-vert"
-                    onclick="location.href='https://troll.dunklekuh.de';"
-                    style="cursor: pointer"
-                  ></i>
+                  <i class="zmdi zmdi-more-vert" onclick="location.href='https://troll.dunklekuh.de';"
+                    style="cursor: pointer"></i>
                 </div>
                 <div class="actions attachment">
-                  <i
-                    class="zmdi zmdi-attachment-alt"
-                    onclick="location.href='https://pr0gramm.com/';"
-                    style="cursor: pointer"
-                  ></i>
+                  <i class="zmdi zmdi-attachment-alt" onclick="location.href='https://pr0gramm.com/';"
+                    style="cursor: pointer"></i>
                 </div>
                 <div class="actions">
-                  <i
-                    class="zmdi zmdi-phone"
-                    onclick="location.href='https://discord.com/channels/624302232594022456';"
-                    style="cursor: pointer"
-                  ></i>
+                  <i class="zmdi zmdi-phone" onclick="location.href='https://discord.com/channels/624302232594022456';"
+                    style="cursor: pointer"></i>
                 </div>
               </div>
               <div class="conversation">
                 <div class="conversation-container">
                   <div v-for="message in messages" :key="message.time">
-                    <MessageSent
-                      v-if="message.type === messageType.Sender"
-                      :time="message.time"
-                      :value="message.value"
-                      :readed="message.readed"
-                    />
-                    <MessageReceived
-                      v-else-if="message.type === messageType.Received"
-                      :time="message.time"
-                      :value="message.value"
-                      :img="message.img"
-                    />
+                    <MessageSent v-if="message.type === messageType.Sender" :time="message.time" :value="message.value"
+                      :readed="message.readed" />
+                    <MessageReceived v-else-if="message.type === messageType.Received" :time="message.time"
+                      :value="message.value" :img="message.img" />
                   </div>
                 </div>
-                <form
-                  class="conversation-compose"
-                  @submit.prevent="onChatInput"
-                >
+                <form class="conversation-compose" @submit.prevent="onChatInput">
                   <div class="emoji">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      id="smiley"
-                      x="3147"
-                      y="3209"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" id="smiley" x="3147" y="3209">
+                      <path fill-rule="evenodd" clip-rule="evenodd"
                         d="M9.153 11.603c.795 0 1.44-.88 1.44-1.962s-.645-1.96-1.44-1.96c-.795 0-1.44.88-1.44 1.96s.645 1.965 1.44 1.965zM5.95 12.965c-.027-.307-.132 5.218 6.062 5.55 6.066-.25 6.066-5.55 6.066-5.55-6.078 1.416-12.13 0-12.13 0zm11.362 1.108s-.67 1.96-5.05 1.96c-3.506 0-5.39-1.165-5.608-1.96 0 0 5.912 1.055 10.658 0zM11.804 1.01C5.61 1.01.978 6.034.978 12.23s4.826 10.76 11.02 10.76S23.02 18.424 23.02 12.23c0-6.197-5.02-11.22-11.216-11.22zM12 21.355c-5.273 0-9.38-3.886-9.38-9.16 0-5.272 3.94-9.547 9.214-9.547a9.548 9.548 0 0 1 9.548 9.548c0 5.272-4.11 9.16-9.382 9.16zm3.108-9.75c.795 0 1.44-.88 1.44-1.963s-.645-1.96-1.44-1.96c-.795 0-1.44.878-1.44 1.96s.645 1.963 1.44 1.963z"
-                        fill="#7d8489"
-                      />
+                        fill="#7d8489" />
                     </svg>
                   </div>
-                  <input
-                    class="input-msg"
-                    name="input"
-                    placeholder="Type a message"
-                    autocomplete="off"
-                    autofocus
-                    v-model="chat"
-                  />
+                  <input class="input-msg" name="input" placeholder="Type a message" autocomplete="off" autofocus
+                    v-model="chat" />
                   <div class="photo">
                     <i class="zmdi zmdi-camera"></i>
                   </div>
@@ -305,6 +257,24 @@ const coffeeTrigger = [
 const startupIdeaTrigger = ["startup", "business", "idea", "idee", "geschäft"];
 */
 
+useHead({
+  link: [
+    {
+      rel: "stylesheet",
+      href: "assets/css/material-design-iconic-font.min.css",
+    },
+    {
+      rel: "stylesheet",
+      href: "assets/css/devices.min.css",
+    },
+    {
+      rel: "icon",
+      href: "https://troll.dunklekuh.de/trollcow.png",
+      type: "image/png",
+    },
+  ],
+})
+
 const messages = ref([] as Array<message>);
 const chat = ref("");
 const deviceTime = ref(moment().format("H:mm"));
@@ -356,6 +326,7 @@ const askCowGPT = () => {
   });
 };
 
+/*
 const addReceivedMessage = (value: string, img?: string | undefined) => {
   messages.value.push({
     readed: false,
@@ -365,6 +336,7 @@ const addReceivedMessage = (value: string, img?: string | undefined) => {
     img,
   });
 };
+*/
 
 const onChatInput = () => {
   const length = messages.value.length;
@@ -700,9 +672,7 @@ body {
 .conversation {
   height: calc(100% - 12px);
   position: relative;
-  background: #efe7dd
-    url("https://cloud.githubusercontent.com/assets/398893/15136779/4e765036-1639-11e6-9201-67e728e86f39.jpg")
-    repeat;
+  background: #efe7dd url("https://cloud.githubusercontent.com/assets/398893/15136779/4e765036-1639-11e6-9201-67e728e86f39.jpg") repeat;
   z-index: 0;
 }
 
@@ -957,7 +927,7 @@ body {
     width: 100% !important;
   }
 
-  .marvel-device > .screen .chat {
+  .marvel-device>.screen .chat {
     visibility: visible;
   }
 
@@ -980,6 +950,7 @@ body {
   .conversation {
     height: calc(100vh - 55px);
   }
+
   .conversation .conversation-container {
     height: calc(100% - 120px);
   }
