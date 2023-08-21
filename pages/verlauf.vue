@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const route = useRoute()
-let page = route.query.page ? parseInt(String(route.query.page)) : 0
+let page = route.query.page ? parseInt(String(route.query.page)) : 1
 const history = ref([] as Array<any>);
-const fetchResult = ref({} as { ok: boolean, message: string })
+const fetchResult = ref({ ok: true, message: "", size: 10 })
 
 useHead({
     title: 'Dunklekuh — Chatverlauf',
@@ -14,11 +14,11 @@ useHead({
     ],
 })
 
-onMounted(() => {
+const loadLogs = (page: number) => {
     const query = [];
     if (route.query.token) query.push(`token=${route.query.token}`)
     if (page > 0) query.push(`page=${page}`)
-    $fetch(`https://api.gels.dev/gpt/cow/history${query.length > 0 ? '?' + query.join('&') : ''}`)
+    $fetch(`https://api.gels.dev/gpt/cow/history${query.length > 1 ? '?' + query.join('&') : ''}`)
         .then((resp: any) => {
             if (resp.ok) {
                 resp.data.forEach((e: any) => {
@@ -26,13 +26,18 @@ onMounted(() => {
                     e.msg = JSON.parse(e.msg)
                     e.logobject = e.logobject.replace('https://', '').replace('http://', '')
                 })
-                history.value = resp.data
-                fetchResult.value = { ok: resp.ok, message: resp.message }
+                history.value.push(...resp.data)
+                fetchResult.value = { ok: resp.ok, message: resp.message, size: resp.data.length }
             }
         })
         .catch((error) => {
             fetchResult.value = error.data
+            fetchResult.value.size = 0
         })
+}
+
+onMounted(() => {
+    loadLogs(page)
 })
 </script>
 
@@ -42,14 +47,14 @@ onMounted(() => {
         <div v-if="!fetchResult.ok">
             <div class="badge status Failed">{{ fetchResult.message }}</div>
         </div>
-        <div v-else class="history" v-for="obj in history" :key="obj.createdAt">
+        <div v-else class="history" v-for="obj in history" :key="obj.id">
             <div class="header">
                 <h2>{{ new Intl.DateTimeFormat('de-DE', {
                     dateStyle: 'medium', timeStyle: 'medium'
                 }).format(new Date(obj.createdAt)) }}</h2>
                 <div class="details">
                     <div class="badge status" :class="obj.status">{{ obj.status }}</div>
-                    <div class="badge source">{{ obj.logobject }}</div>
+                    <div class="badge">{{ obj.logobject }}</div>
                 </div>
             </div>
             <div v-for="(message, i) in obj.debug.messages" :key="i" class="message">
@@ -66,6 +71,9 @@ onMounted(() => {
                     <md-block>{{ message_gpt.message.content }}</md-block>
                 </div>
             </div>
+        </div>
+        <div class="loadmore" v-show="fetchResult.size >= 10">
+            <button class="button" @click="loadLogs(++page)">Mehr laden</button>
         </div>
     </div>
 </template>
@@ -89,6 +97,7 @@ body {
     color: #111b21;
 }
 
+
 h1,
 h2,
 h3 {
@@ -97,6 +106,25 @@ h3 {
 
 .title {
     padding: 0.5em;
+}
+
+.loadmore {
+    text-align: center;
+}
+
+.button {
+    cursor: pointer;
+    border-radius: 0.375rem;
+    background-color: #dddddd;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    margin: 1em;
+    border: none;
 }
 
 .history {
