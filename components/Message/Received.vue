@@ -1,7 +1,7 @@
 <template>
   <div class="message received">
     <img v-if="img" :src="img" :alt="value" style="width: 100%" />
-    <span v-else>{{ value }}</span>
+    <md-block v-else>{{ value }}</md-block>
     <span class="metadata">
       <span class="time">
         {{ time }}

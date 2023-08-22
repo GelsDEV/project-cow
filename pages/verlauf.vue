@@ -2,7 +2,7 @@
 const route = useRoute()
 let page = route.query.page ? parseInt(String(route.query.page)) : 1
 const history = ref([] as Array<any>);
-const fetchResult = ref({ ok: true, message: "", size: 10 })
+const fetchResult = ref({ ok: true, message: "", size: 0 })
 
 useHead({
     title: 'Dunklekuh — Chatverlauf',
@@ -56,7 +56,9 @@ onMounted(() => {
                     <div class="badge status" :class="obj.status">{{ obj.status }}</div>
                     <div class="badge origin">{{ obj.logobject }}</div>
                     <div v-show="obj.msg.ip" class="badge ip">{{ obj.msg.ip }}</div>
-                    <div class="badge">{{ obj.msg.id }}</div>
+                    <NuxtLink class="badge id" :to="`/?chat=${obj.msg.id}`" target="_blank">
+                        🔗 {{ obj.msg.id }}
+                    </NuxtLink>
                 </div>
             </div>
             <div v-for="(message, i) in obj.debug.messages" :key="i" class="message">
@@ -145,6 +147,9 @@ h3 {
 .history .header .details {
     display: flex;
     flex-wrap: wrap;
+}
+
+.history .header .details .badge {
     margin-top: 0.25em;
 }
 
@@ -179,6 +184,15 @@ h3 {
 .history .header .details .origin,
 .history .header .details .ip {
     margin-right: 0.5em;
+}
+
+.history .header .details .id {
+    text-decoration: none;
+    color: #111b21;
+}
+
+.history .header .details .id:hover {
+    background-color: #ddd;
 }
 
 .history .message .user {

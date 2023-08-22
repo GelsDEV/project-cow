@@ -91,6 +91,7 @@
 import moment from "moment";
 
 const route = useRoute()
+const router = useRouter()
 
 /* Interfaces */
 
@@ -275,11 +276,18 @@ useHead({
       type: "image/png",
     },
   ],
+  script: [
+    {
+      type: "module",
+      src: "https://md-block.verou.me/md-block.js",
+    }
+  ],
 })
 
 const messages = ref([] as Array<message>);
 const chat = ref("");
 const deviceTime = ref(moment().format("H:mm"));
+const chat_id = ref(route.query.chat ? String(route.query.chat) : "");
 
 /* Methods */
 
@@ -314,42 +322,61 @@ const askCowGPT = () => {
         readed: false,
         value: resp.data.content,
         time: moment().format("H:mm"),
-        type: messageType.Received,
-      });
+        type: messageType.Received
+      })
+      chat_id.value = resp.chat_id
     } else {
       messages.value.push({
         readed: false,
         value: resp.message,
         time: moment().format("H:mm"),
-        type: messageType.Received,
-      });
+        type: messageType.Received
+      })
     }
     scrollTop(500);
-  });
-};
+  })
+    .catch(error => {
+      console.log(error.data)
+      messages.value.push({
+        readed: false,
+        value: error.data.message,
+        time: moment().format("H:mm"),
+        type: messageType.Received
+      })
+    })
+}
 
-const continueCowGPT = (chat_id: string) => {
-  $fetch(`https://api.gels.dev/gpt/cow?id=${chat_id}`).then((resp: any) => {
+const continueCowGPT = (p_chat_id: string) => {
+  $fetch(`https://api.gels.dev/gpt/cow?id=${p_chat_id}`).then((resp: any) => {
     if (resp.ok) {
       resp.data.forEach((el: any) => {
         messages.value.push({
           readed: el.role === "user" ? false : false,
           value: el.content,
           time: moment().format("H:mm"),
-          type: el.role === "user" ? messageType.Sender : messageType.Received,
-        });
-      });
+          type: el.role === "user" ? messageType.Sender : messageType.Received
+        })
+      })
     } else {
       messages.value.push({
         readed: false,
         value: resp.message,
         time: moment().format("H:mm"),
-        type: messageType.Received,
-      });
+        type: messageType.Received
+      })
     }
     scrollTop(500);
-  });
-};
+  })
+    .catch(error => {
+      console.log(error.data)
+      messages.value.push({
+        readed: false,
+        value: error.data.message,
+        time: moment().format("H:mm"),
+        type: messageType.Received
+      })
+    })
+}
 
 /*
 const addReceivedMessage = (value: string, img?: string | undefined) => {
@@ -463,9 +490,16 @@ const onChatInput = () => {
 /* Mounted */
 
 onMounted(() => {
-  if (route.query.chat) {
-    continueCowGPT(String(route.query.chat))
-  }
+
+  watch(chat_id, (chat_id, previous) => {
+    router.push({
+      path: '/',
+      query: { chat: chat_id },
+    })
+  })
+
+  if (chat_id.value && ["new", "neu"].includes(chat_id.value.toLowerCase())) { }
+  else if (chat_id.value) continueCowGPT(chat_id.value)
   else {
     messages.value.push({
       readed: true,
@@ -748,7 +782,7 @@ body {
   max-width: 85%;
   word-wrap: break-word;
   z-index: -1;
-  white-space: break-spaces;
+  /*white-space: break-spaces;*/
 }
 
 .message:after {
@@ -821,6 +855,15 @@ body {
   background: #fff;
   border-radius: 0px 5px 5px 5px;
   float: left;
+}
+
+.message.received pre {
+  white-space: pre-wrap;
+}
+
+.message.received p {
+  margin-block-start: 0px;
+  margin-block-end: 0px;
 }
 
 .message.received .metadata {
