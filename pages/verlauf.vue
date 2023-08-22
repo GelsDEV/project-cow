@@ -55,8 +55,8 @@ onMounted(() => {
                 <div class="details">
                     <div class="badge status" :class="obj.status">{{ obj.status }}</div>
                     <div class="badge origin">{{ obj.logobject }}</div>
-                    <div v-show="obj.msg.ip" class="badge ip">{{ obj.msg.ip }}</div>
-                    <NuxtLink class="badge id" :to="`/?chat=${obj.msg.id.split('-')[1]}`" target="_blank">
+                    <div v-if="obj.msg && obj.msg.ip" class="badge ip">{{ obj.msg.ip }}</div>
+                    <NuxtLink v-if="obj.msg && obj.msg.id" class="badge id" :to="`/?chat=${obj.msg.id.split('-')[1]}`" target="_blank">
                         🔗 {{ obj.msg.id.split('-')[1] }}
                     </NuxtLink>
                 </div>
