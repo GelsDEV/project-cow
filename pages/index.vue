@@ -35,7 +35,7 @@
                 </div>
                 <div class="name" onclick="location.href='https://eject.dunklekuh.de';" style="cursor: pointer">
                   <span>Dunklekuh</span>
-                  <span class="status">online</span>
+                  <span class="status">{{ loading ? 'Dunklekuh schreibt ...' : 'online' }}</span>
                 </div>
                 <div class="actions more">
                   <i class="zmdi zmdi-more-vert" onclick="location.href='https://troll.dunklekuh.de';"
@@ -286,6 +286,7 @@ useHead({
 
 const messages = ref([] as Array<message>);
 const chat = ref("");
+const loading = ref(false);
 const deviceTime = ref(moment().format("H:mm"));
 const chat_id = ref(route.query.chat ? String(route.query.chat) : "");
 
@@ -304,12 +305,13 @@ const scrollTop = (time?: number | undefined) => {
 };
 
 const askCowGPT = () => {
-  const req = { messages: [] as Array<{ role: string; content: string }> };
+  loading.value = true;
+  const req = { messages: [] as Array<{ role: string; content: string }>, cheap: true };
 
   messages.value.forEach((message) => {
     req.messages.push({
       role: message.type === messageType.Sender ? "user" : "assistant",
-      content: message.value,
+      content: message.value
     });
   });
 
@@ -317,6 +319,7 @@ const askCowGPT = () => {
     method: "POST",
     body: JSON.stringify(req),
   }).then((resp: any) => {
+    loading.value = false;
     if (resp.ok) {
       messages.value.push({
         readed: false,
@@ -336,6 +339,7 @@ const askCowGPT = () => {
     scrollTop(500);
   })
     .catch(error => {
+      loading.value = false;
       console.log(error.data)
       messages.value.push({
         readed: false,
@@ -347,27 +351,31 @@ const askCowGPT = () => {
 }
 
 const continueCowGPT = (p_chat_id: string) => {
-  $fetch(`https://api.gels.dev/gpt/cow?id=${p_chat_id}`).then((resp: any) => {
-    if (resp.ok) {
-      resp.data.forEach((el: any) => {
-        messages.value.push({
-          readed: el.role === "user" ? false : false,
-          value: el.content,
-          time: moment().format("H:mm"),
-          type: el.role === "user" ? messageType.Sender : messageType.Received
+  loading.value = true;
+  $fetch(`https://api.gels.dev/gpt/cow?id=${p_chat_id}`)
+    .then((resp: any) => {
+      loading.value = false;
+      if (resp.ok) {
+        resp.data.forEach((el: any) => {
+          messages.value.push({
+            readed: el.role === "user" ? false : false,
+            value: el.content,
+            time: moment().format("H:mm"),
+            type: el.role === "user" ? messageType.Sender : messageType.Received
+          })
         })
-      })
-    } else {
-      messages.value.push({
-        readed: false,
-        value: resp.message,
-        time: moment().format("H:mm"),
-        type: messageType.Received
-      })
-    }
-    scrollTop(500);
-  })
+      } else {
+        messages.value.push({
+          readed: false,
+          value: resp.message,
+          time: moment().format("H:mm"),
+          type: messageType.Received
+        })
+      }
+      scrollTop(500);
+    })
     .catch(error => {
+      loading.value = false;
       console.log(error.data)
       messages.value.push({
         readed: false,
