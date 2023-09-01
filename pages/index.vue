@@ -289,7 +289,7 @@ const chat = ref("");
 const loading = ref(false);
 const deviceTime = ref(moment().format("H:mm"));
 const chat_id = ref(route.query.chat ? String(route.query.chat) : "");
-const cheap = route.query.cheap && String(route.query.cheap).toLowerCase() === "false" ? false : true
+const cheap = route.query.fast ? true : false
 
 /* Methods */
 
