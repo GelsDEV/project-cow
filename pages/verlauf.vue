@@ -54,8 +54,9 @@ onMounted(() => {
                 }).format(new Date(obj.createdAt)) }}</h2>
                 <div class="details">
                     <div class="badge status" :class="obj.status">{{ obj.status }}</div>
+                    <div v-if="obj.msg && obj.msg.model" class="badge model">{{ obj.msg.model }}</div>
                     <div class="badge origin">{{ obj.logobject }}</div>
-                    <div v-if="obj.msg && obj.msg.ip" class="badge ip">{{ obj.msg.ip }}</div>
+                    <div v-if="obj.debug && obj.debug.ip" class="badge ip">{{ obj.debug.ip }}</div>
                     <NuxtLink v-if="obj.msg && obj.msg.id" class="badge id" :to="`/?chat=${obj.msg.id.split('-')[1]}`" target="_blank">
                         🔗 {{ obj.msg.id.split('-')[1] }}
                     </NuxtLink>
@@ -181,6 +182,7 @@ h3 {
 }
 
 .history .header .details .status,
+.history .header .details .model,
 .history .header .details .origin,
 .history .header .details .ip {
     margin-right: 0.5em;

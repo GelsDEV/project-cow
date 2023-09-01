@@ -35,7 +35,7 @@
                 </div>
                 <div class="name" onclick="location.href='https://eject.dunklekuh.de';" style="cursor: pointer">
                   <span>Dunklekuh</span>
-                  <span class="status">{{ loading ? 'Dunklekuh schreibt ...' : 'online' }}</span>
+                  <span class="status">{{ loading ? 'schreibt ...' : 'online' }}</span>
                 </div>
                 <div class="actions more">
                   <i class="zmdi zmdi-more-vert" onclick="location.href='https://troll.dunklekuh.de';"
@@ -289,6 +289,7 @@ const chat = ref("");
 const loading = ref(false);
 const deviceTime = ref(moment().format("H:mm"));
 const chat_id = ref(route.query.chat ? String(route.query.chat) : "");
+const cheap = route.query.cheap && String(route.query.cheap).toLowerCase() === "false" ? false : true
 
 /* Methods */
 
@@ -306,7 +307,7 @@ const scrollTop = (time?: number | undefined) => {
 
 const askCowGPT = () => {
   loading.value = true;
-  const req = { messages: [] as Array<{ role: string; content: string }>, cheap: true };
+  const req = { messages: [] as Array<{ role: string; content: string }>, cheap };
 
   messages.value.forEach((message) => {
     req.messages.push({
