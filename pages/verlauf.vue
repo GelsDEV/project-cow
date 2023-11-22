@@ -47,33 +47,35 @@ onMounted(() => {
         <div v-if="!fetchResult.ok">
             <div class="badge status Failed">{{ fetchResult.message }}</div>
         </div>
-        <div v-else class="history" v-for="obj in history" :key="obj.id">
-            <div class="header">
-                <h2>{{ new Intl.DateTimeFormat('de-DE', {
-                    dateStyle: 'medium', timeStyle: 'medium'
-                }).format(new Date(obj.createdAt)) }}</h2>
-                <div class="details">
-                    <div class="badge status" :class="obj.status">{{ obj.status }}</div>
-                    <div v-if="obj.msg && obj.msg.model" class="badge model">{{ obj.msg.model }}</div>
-                    <div class="badge origin">{{ obj.logobject }}</div>
-                    <div v-if="obj.debug && obj.debug.ip" class="badge ip">{{ obj.debug.ip }}</div>
-                    <NuxtLink v-if="obj.msg && obj.msg.id" class="badge id" :to="`/?chat=${obj.msg.id.split('-')[1]}`" target="_blank">
-                        🔗 {{ obj.msg.id.split('-')[1] }}
-                    </NuxtLink>
+        <div v-else v-auto-animate>
+            <div class="history" v-for="obj in history" :key="obj.id">
+                <div class="header">
+                    <h2>{{ new Intl.DateTimeFormat('de-DE', {
+                        dateStyle: 'medium', timeStyle: 'medium'
+                    }).format(new Date(obj.createdAt)) }}</h2>
+                    <div class="details">
+                        <div class="badge status" :class="obj.status">{{ obj.status }}</div>
+                        <div v-if="obj.msg && obj.msg.model" class="badge model">{{ obj.msg.model }}</div>
+                        <div class="badge origin">{{ obj.logobject }}</div>
+                        <div v-if="obj.debug && obj.debug.ip" class="badge ip">{{ obj.debug.ip }}</div>
+                        <NuxtLink v-if="obj.msg && obj.msg.id" class="badge id" :to="`/?chat=${obj.msg.id.split('-')[1]}`" target="_blank">
+                            🔗 {{ obj.msg.id.split('-')[1] }}
+                        </NuxtLink>
+                    </div>
                 </div>
-            </div>
-            <div v-for="(message, i) in obj.debug.messages" :key="i" class="message">
-                <p v-if="message.role === 'user'" :class="message.role">
-                    {{ message.content }}
-                </p>
-                <div v-else :class="message.role">
-                    <md-block>{{ message.content }}</md-block>
-                </div>
+                <div v-for="(message, i) in obj.debug.messages" :key="i" class="message">
+                    <p v-if="message.role === 'user'" :class="message.role">
+                        {{ message.content }}
+                    </p>
+                    <div v-else :class="message.role">
+                        <md-block>{{ message.content }}</md-block>
+                    </div>
 
-            </div>
-            <div v-if="obj.msg" class="message">
-                <div v-for="(message_gpt, i) in obj.msg.choices" :key="i" :class="message_gpt.message.role">
-                    <md-block>{{ message_gpt.message.content }}</md-block>
+                </div>
+                <div v-if="obj.msg" class="message">
+                    <div v-for="(message_gpt, i) in obj.msg.choices" :key="i" :class="message_gpt.message.role">
+                        <md-block>{{ message_gpt.message.content }}</md-block>
+                    </div>
                 </div>
             </div>
         </div>

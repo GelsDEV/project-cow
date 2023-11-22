@@ -51,7 +51,7 @@
                 </div>
               </div>
               <div class="conversation">
-                <div class="conversation-container">
+                <div class="conversation-container" v-auto-animate>
                   <div v-for="message in messages" :key="message.time">
                     <MessageSent v-if="message.type === messageType.Sender" :time="message.time" :value="message.value"
                       :readed="message.readed" />
