@@ -8,7 +8,7 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
-    "nuxt": "^3.9.3"
+    "nuxt": "^3.10.0"
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.1",
