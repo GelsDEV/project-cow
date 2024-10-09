@@ -410,7 +410,7 @@ const onChatInput = () => {
     type: messageType.Sender,
   });
   setTimeout(() => {
-    messages.value[length].readed = true;
+    if(messages.value[length]) messages.value[length].readed = true;
   }, 500);
   askCowGPT();
 

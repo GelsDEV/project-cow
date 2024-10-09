@@ -5,6 +5,10 @@ const image = url + "/avatar.jpg";
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
+    future: {
+        compatibilityVersion: 4,
+    },
+
     app: {
         head: {
             title: title,
@@ -31,7 +35,6 @@ export default defineNuxtConfig({
         }
     },
     ssr: false,
-    //target: "static"
 
     modules: ['@formkit/auto-animate/nuxt'],
 })
