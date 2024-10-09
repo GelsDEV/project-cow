@@ -2,10 +2,11 @@
 name: 🚀 Deploy to GitHub Pages
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
+
+  workflow_dispatch:
 
 jobs:
   build:
@@ -37,7 +38,7 @@ jobs:
         run: pnpm install
 
       - name: Build Nuxt
-      - run: npm run build
+        run: npm run build
         env:
           NITRO_PRESET: github_pages
 
