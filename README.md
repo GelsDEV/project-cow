@@ -1,28 +1,25 @@
-# Nuxt 3 Minimal Starter
+# Project Cow
 
-Look at the [nuxt 3 documentation](https://v3.nuxtjs.org) to learn more.
+Funny Meme Project for a Mate.
+
+[![Nuxt UI Pro](https://img.shields.io/badge/Made%20with-Nuxt-00DC82?logo=nuxt.js&labelColor=020420)](https://nuxt.com)
 
 ## Setup
 
 Make sure to install the dependencies:
 
 ```bash
-# yarn
-yarn install
-
-# npm
-npm install
-
 # pnpm
-pnpm install --shamefully-hoist
+pnpm install
 ```
 
 ## Development Server
 
-Start the development server on http://localhost:3000
+Start the development server on `http://localhost:3000`:
 
 ```bash
-npm run dev
+# pnpm
+pnpm run dev
 ```
 
 ## Production
@@ -30,13 +27,19 @@ npm run dev
 Build the application for production:
 
 ```bash
-npm run build
+# pnpm
+pnpm run build
 ```
 
 Locally preview production build:
 
 ```bash
-npm run preview
+# pnpm
+pnpm run preview
 ```
 
-Checkout the [deployment documentation](https://v3.nuxtjs.org/guide/deploy/presets) for more information.
+Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+## Renovate integration
+
+Install [Renovate GitHub app](https://github.com/apps/renovate/installations/select_target) on your repository and you are good to go.
