@@ -1,7 +1,37 @@
 <script setup lang="ts">
+// TypeScript Types
+interface Message {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+interface HistoryItem {
+  id: string
+  createdAt: string
+  status: 'Successful' | 'Failed' | 'Running'
+  debug: {
+    messages: Message[]
+    ip?: string
+  }
+  msg?: {
+    id: string
+    model: string
+    choices: Array<{
+      message: Message
+    }>
+  }
+  logobject: string
+}
+
+interface ApiResponse {
+  ok: boolean
+  message?: string
+  data?: any[]
+}
+
 const route = useRoute()
 const page = ref(route.query.page ? parseInt(String(route.query.page)) : 1)
-const history = ref<any[]>([])
+const allHistory = ref<HistoryItem[]>([])
 
 useHead({
   title: 'Dunklekuh — Chatverlauf',
@@ -23,64 +53,104 @@ const apiUrl = computed(() => {
   return `https://api.gels.dev/gpt/cow/history${queryString}`
 })
 
-// useFetch mit automatischem Caching und Loading State
-const { data: fetchResult, pending, error, refresh } = await useFetch(apiUrl, {
-  key: 'chat-history',
-  transform: (response: any): { ok: boolean; message: string; size: number } => {
-    if (response?.ok && response?.data) {
-      // Daten verarbeiten
-      response.data.forEach((e: any) => {
-        e.debug = JSON.parse(e.debug)
-        e.msg = JSON.parse(e.msg)
-        e.logobject = e.logobject.replace(/^https?:\/\//, '')
-      })
-      
-      // Neue Daten zur Historie hinzufügen
-      if (page.value === 1) {
-        history.value = response.data
-      } else {
-        history.value.push(...response.data)
-      }
-    }
-    
-    return {
-      ok: response?.ok || false,
-      message: response?.message || (error.value ? 'Fehler beim Laden' : ''),
-      size: response?.data?.length || 0
-    }
-  },
-  default: () => ({ ok: true, message: "", size: 0 })
+// useFetch für GET-Requests mit optimiertem Caching
+const { data: response, pending, error, refresh } = await useFetch<ApiResponse>(apiUrl, {
+  key: () => `chat-history-${page.value}-${route.query.token || 'no-token'}`,
+  server: false, // Client-only da wir Token-basierte API verwenden
+  default: () => ({ ok: false, message: 'Laden...', data: [] }),
+  transform: (data: any) => data as ApiResponse
 })
+
+// Computed für verarbeitete Daten und Status
+const fetchResult = computed(() => {
+  if (error.value) {
+    return { ok: false, message: 'Fehler beim Laden der Daten', size: 0 }
+  }
+  
+  const resp = response.value
+  if (!resp?.ok) {
+    return { ok: false, message: resp?.message || 'Keine Daten erhalten', size: 0 }
+  }
+  
+  return {
+    ok: true,
+    message: resp.message || '',
+    size: resp.data?.length || 0
+  }
+})
+
+// Loading state für bessere UX
+const isLoading = computed(() => pending.value)
+
+// Watch für neue Daten und History-Management
+watch(response, (newResponse) => {
+  if (newResponse?.ok && newResponse?.data) {
+    try {
+      // Daten verarbeiten und typisieren
+      const processedData: HistoryItem[] = newResponse.data.map((e: any) => ({
+        ...e,
+        debug: typeof e.debug === 'string' ? JSON.parse(e.debug) : e.debug,
+        msg: e.msg && typeof e.msg === 'string' ? JSON.parse(e.msg) : e.msg,
+        logobject: e.logobject.replace(/^https?:\/\//, '')
+      }))
+      
+      if (page.value === 1) {
+        // Erste Seite: Historie ersetzen
+        allHistory.value = processedData
+      } else {
+        // Weitere Seiten: Nur neue Daten anhängen
+        const existingIds = new Set(allHistory.value.map(item => item.id))
+        const newItems = processedData.filter(item => !existingIds.has(item.id))
+        allHistory.value.push(...newItems)
+      }
+    } catch (parseError) {
+      console.error('Fehler beim Verarbeiten der History-Daten:', parseError)
+    }
+  }
+}, { immediate: true })
 
 const loadMore = async () => {
-  page.value++
-  await refresh()
+  if (!isLoading.value && fetchResult.value.size >= 10) {
+    page.value++
+    await refresh()
+  }
 }
 
-// Watch für Seiten-Änderungen
-watch(page, () => {
+// Reset bei Token-Änderung
+watch(() => route.query.token, () => {
+  page.value = 1
+  allHistory.value = []
   refresh()
-})
+}, { immediate: false })
 </script>
 
 <template>
     <div>
         <h1 class="title">Chatverlauf CowGPT</h1>
-        <div v-if="!fetchResult.ok">
+        
+        <!-- Error State -->
+        <div v-if="!fetchResult.ok && !isLoading">
             <div class="badge status Failed">{{ fetchResult.message }}</div>
         </div>
+        
+        <!-- Loading State für erste Anfrage -->
+        <div v-else-if="isLoading && allHistory.length === 0" class="loading">
+            <div class="badge status Running">Lade Chatverlauf...</div>
+        </div>
+        
+        <!-- History Display -->
         <div v-else v-auto-animate>
-            <div class="history" v-for="obj in history" :key="obj.id">
+            <div class="history" v-for="obj in allHistory" :key="obj.id">
                 <div class="header">
                     <h2>{{ new Intl.DateTimeFormat('de-DE', {
                         dateStyle: 'medium', timeStyle: 'medium'
                     }).format(new Date(obj.createdAt)) }}</h2>
                     <div class="details">
                         <div class="badge status" :class="obj.status">{{ obj.status }}</div>
-                        <div v-if="obj.msg && obj.msg.model" class="badge model">{{ obj.msg.model }}</div>
+                        <div v-if="obj.msg?.model" class="badge model">{{ obj.msg.model }}</div>
                         <div class="badge origin">{{ obj.logobject }}</div>
-                        <div v-if="obj.debug && obj.debug.ip" class="badge ip">{{ obj.debug.ip }}</div>
-                        <NuxtLink v-if="obj.msg && obj.msg.id" class="badge id" :to="`/?chat=${obj.msg.id.split('-')[1]}`" target="_blank">
+                        <div v-if="obj.debug?.ip" class="badge ip">{{ obj.debug.ip }}</div>
+                        <NuxtLink v-if="obj.msg?.id" class="badge id" :to="`/?chat=${obj.msg.id.split('-')[1]}`" target="_blank">
                             🔗 {{ obj.msg.id.split('-')[1] }}
                         </NuxtLink>
                     </div>
@@ -92,7 +162,6 @@ watch(page, () => {
                     <div v-else :class="message.role">
                         <md-block>{{ message.content }}</md-block>
                     </div>
-
                 </div>
                 <div v-if="obj.msg" class="message">
                     <div v-for="(message_gpt, i) in obj.msg.choices" :key="i" :class="message_gpt.message.role">
@@ -101,8 +170,12 @@ watch(page, () => {
                 </div>
             </div>
         </div>
-        <div class="loadmore" v-show="fetchResult?.size >= 10">
-            <button class="button" @click="loadMore">Mehr laden</button>
+        
+        <!-- Load More Button -->
+        <div class="loadmore" v-show="fetchResult.size >= 10 && !error">
+            <button class="button" @click="loadMore" :disabled="isLoading">
+                {{ isLoading ? 'Lade...' : 'Mehr laden' }}
+            </button>
         </div>
     </div>
 </template>
@@ -141,6 +214,11 @@ h3 {
     text-align: center;
 }
 
+.loading {
+    padding: 1em;
+    text-align: center;
+}
+
 .button {
     cursor: pointer;
     border-radius: 0.375rem;
@@ -154,6 +232,16 @@ h3 {
     font-weight: 600;
     margin: 1em;
     border: none;
+    transition: all 0.2s;
+}
+
+.button:hover:not(:disabled) {
+    background-color: #cccccc;
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .history {
