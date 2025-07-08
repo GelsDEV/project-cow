@@ -27,35 +27,32 @@
           <div class="chat">
             <div class="chat-container">
               <div class="user-bar">
-                <div class="back" onclick="location.href='https://eject.dunklekuh.de';" style="cursor: pointer">
+                <div class="back" @click="navigateToEject" style="cursor: pointer">
                   <i class="zmdi zmdi-arrow-left"></i>
                 </div>
-                <div class="avatar" onclick="location.href='https://eject.dunklekuh.de';" style="cursor: pointer">
+                <div class="avatar" @click="navigateToEject" style="cursor: pointer">
                   <img src="/avatar.jpg" alt="Avatar" />
                 </div>
-                <div class="name" onclick="location.href='https://eject.dunklekuh.de';" style="cursor: pointer">
+                <div class="name" @click="navigateToEject" style="cursor: pointer">
                   <span>Dunklekuh</span>
                   <span class="status">{{ loading ? 'schreibt ...' : 'online' }}</span>
                 </div>
                 <div class="actions more">
-                  <i class="zmdi zmdi-more-vert" onclick="location.href='https://troll.dunklekuh.de';"
-                    style="cursor: pointer"></i>
+                  <i class="zmdi zmdi-more-vert" @click="navigateToTroll" style="cursor: pointer"></i>
                 </div>
                 <div class="actions attachment">
-                  <i class="zmdi zmdi-attachment-alt" onclick="location.href='https://pr0gramm.com/';"
-                    style="cursor: pointer"></i>
+                  <i class="zmdi zmdi-attachment-alt" @click="navigateToPr0gramm" style="cursor: pointer"></i>
                 </div>
                 <div class="actions">
-                  <i class="zmdi zmdi-phone" onclick="location.href='https://discord.com/channels/624302232594022456';"
-                    style="cursor: pointer"></i>
+                  <i class="zmdi zmdi-phone" @click="navigateToDiscord" style="cursor: pointer"></i>
                 </div>
               </div>
               <div class="conversation">
                 <div class="conversation-container" v-auto-animate>
                   <div v-for="message in messages" :key="message.time">
-                    <MessageSent v-if="message.type === messageType.Sender" :time="message.time" :value="message.value"
+                    <MessageSent v-if="message.type === MessageType.Sender" :time="message.time" :value="message.value"
                       :readed="message.readed" />
-                    <MessageReceived v-else-if="message.type === messageType.Received" :time="message.time"
+                    <MessageReceived v-else-if="message.type === MessageType.Received" :time="message.time"
                       :value="message.value" :img="message.img" />
                   </div>
                 </div>
@@ -93,19 +90,24 @@ import moment from "moment";
 const route = useRoute()
 const router = useRouter()
 
-/* Interfaces */
+// Navigation methods
+const navigateToEject = () => window.location.href = 'https://eject.dunklekuh.de'
+const navigateToTroll = () => window.location.href = 'https://troll.dunklekuh.de'
+const navigateToPr0gramm = () => window.location.href = 'https://pr0gramm.com/'
+const navigateToDiscord = () => window.location.href = 'https://discord.com/channels/624302232594022456'
 
-enum messageType {
+/* TypeScript Interfaces */
+enum MessageType {
   Sender,
   Received,
 }
 
-interface message {
-  value: string;
-  type: messageType;
-  img?: string;
-  time: string;
-  readed: boolean;
+interface Message {
+  value: string
+  type: MessageType
+  img?: string
+  time: string
+  readed: boolean
 }
 
 /* Declarations */
@@ -284,11 +286,11 @@ useHead({
   ],
 })
 
-const messages = ref([] as Array<message>);
-const chat = ref("");
-const loading = ref(false);
-const deviceTime = ref(moment().format("H:mm"));
-const chat_id = ref(route.query.chat ? String(route.query.chat) : "");
+const messages = ref<Message[]>([])
+const chat = ref("")
+const loading = ref(false)
+const deviceTime = ref(moment().format("H:mm"))
+const chat_id = ref(route.query.chat ? String(route.query.chat) : "")
 const cheap = route.query.fast ? true : false
 
 /* Methods */
@@ -305,86 +307,90 @@ const scrollTop = (time?: number | undefined) => {
   );
 };
 
-const askCowGPT = () => {
-  loading.value = true;
-  const req = { messages: [] as Array<{ role: string; content: string }>, cheap };
+const askCowGPT = async () => {
+  loading.value = true
+  const req = { messages: [] as Array<{ role: string; content: string }>, cheap }
 
-  messages.value.forEach((message) => {
+  messages.value.forEach((message: Message) => {
     req.messages.push({
-      role: message.type === messageType.Sender ? "user" : "assistant",
+      role: message.type === MessageType.Sender ? "user" : "assistant",
       content: message.value
-    });
-  });
+    })
+  })
 
-  $fetch("https://api.gels.dev/gpt/cow", {
-    method: "POST",
-    body: JSON.stringify(req),
-  }).then((resp: any) => {
-    loading.value = false;
-    if (resp.ok) {
+  try {
+    const response = await $fetch<any>("https://api.gels.dev/gpt/cow", {
+      method: "POST",
+      body: req,
+    })
+    
+    loading.value = false
+    if (response?.ok) {
       messages.value.push({
         readed: false,
-        value: resp.data.content,
+        value: response.data.content,
         time: moment().format("H:mm"),
-        type: messageType.Received
+        type: MessageType.Received
       })
-      chat_id.value = resp.chat_id
+      chat_id.value = response.chat_id
     } else {
       messages.value.push({
         readed: false,
-        value: resp.message,
+        value: response?.message || 'Fehler bei der Antwort',
         time: moment().format("H:mm"),
-        type: messageType.Received
+        type: MessageType.Received
       })
     }
-    scrollTop(500);
-  })
-    .catch(error => {
-      loading.value = false;
-      console.log(error.data)
-      messages.value.push({
-        readed: false,
-        value: error.data.message,
-        time: moment().format("H:mm"),
-        type: messageType.Received
-      })
+  } catch (error: any) {
+    loading.value = false
+    console.log(error.data)
+    messages.value.push({
+      readed: false,
+      value: error.data?.message || 'Verbindungsfehler',
+      time: moment().format("H:mm"),
+      type: MessageType.Received
     })
+  }
+  
+  scrollTop(500)
 }
 
-const continueCowGPT = (p_chat_id: string) => {
-  loading.value = true;
-  $fetch(`https://api.gels.dev/gpt/cow?id=${p_chat_id}`)
-    .then((resp: any) => {
-      loading.value = false;
-      if (resp.ok) {
-        resp.data.forEach((el: any) => {
-          messages.value.push({
-            readed: el.role === "user" ? false : false,
-            value: el.content,
-            time: moment().format("H:mm"),
-            type: el.role === "user" ? messageType.Sender : messageType.Received
-          })
-        })
-      } else {
+const continueCowGPT = async (p_chat_id: string) => {
+  loading.value = true
+  
+  try {
+    const response = await $fetch<any>(`https://api.gels.dev/gpt/cow?id=${p_chat_id}`)
+    
+    loading.value = false
+    if (response?.ok) {
+      response.data.forEach((el: any) => {
         messages.value.push({
-          readed: false,
-          value: resp.message,
+          readed: el.role === "user" ? false : false,
+          value: el.content,
           time: moment().format("H:mm"),
-          type: messageType.Received
+          type: el.role === "user" ? MessageType.Sender : MessageType.Received
         })
-      }
-      scrollTop(500);
-    })
-    .catch(error => {
-      loading.value = false;
-      console.log(error.data)
+      })
+    } else {
       messages.value.push({
         readed: false,
-        value: error.data.message,
+        value: response?.message || 'Fehler beim Laden des Chats',
         time: moment().format("H:mm"),
-        type: messageType.Received
+        type: MessageType.Received
       })
+    }
+  } catch (error: any) {
+    loading.value = false
+    console.log(error.data)
+    messages.value.push({
+      readed: false,
+      value: error.data?.message || 'Verbindungsfehler',
+      time: moment().format("H:mm"),
+      type: MessageType.Received
     })
+  }
+  
+  scrollTop(500)
 }
 
 /*
@@ -400,156 +406,68 @@ const addReceivedMessage = (value: string, img?: string | undefined) => {
 */
 
 const onChatInput = () => {
-  const length = messages.value.length;
-  let input = chat.value.toLocaleLowerCase();
-  if (!input) return;
+  const length = messages.value.length
+  const input = chat.value.trim()
+  if (!input) return
+  
   messages.value.push({
     readed: false,
     value: chat.value,
     time: moment().format("H:mm"),
-    type: messageType.Sender,
-  });
+    type: MessageType.Sender,
+  })
+  
   setTimeout(() => {
-    if(messages.value[length]) messages.value[length].readed = true;
-  }, 500);
-  askCowGPT();
-
-  /*
-
-  setTimeout(async () => {
-    if (memeTrigger.some((e) => input.includes(e))) {
-      const resp_memes = await $fetch("https://api.imgflip.com/get_memes").then(
-        (resp: any) => resp.data.memes
-      );
-      const rnd_meme =
-        resp_memes[Math.floor(Math.random() * resp_memes.length)];
-      addReceivedMessage(rnd_meme.name, rnd_meme.url);
-      scrollTop(500);
-    } else if (jokeTrigger.some((e) => input.includes(e))) {
-      addReceivedMessage(
-        await $fetch(
-          "https://geek-jokes.sameerkumar.website/api?format=json"
-        ).then((resp: any) => resp.joke)
-      );
-    } else if (catTrigger.some((e) => input.includes(e))) {
-      addReceivedMessage(
-        await $fetch("https://catfact.ninja/fact").then(
-          (resp: any) => resp.fact
-        )
-      );
-    } else if (httpDogTrigger.includes(input)) {
-      addReceivedMessage(
-        `HTTP STATUS CODE ${input}`,
-        `https://http.dog/${input}.webp`
-      );
-      scrollTop(500);
-    } else if (ipTrigger.some((e) => input.includes(e))) {
-      addReceivedMessage(
-        await $fetch("https://api.ipify.org/?format=json").then(
-          (resp: any) => resp.ip
-        )
-      );
-    } else if (userTrigger.some((e) => input.includes(e))) {
-      addReceivedMessage(
-        await $fetch("https://randomuser.me/api/").then((resp: any) =>
-          JSON.stringify(resp, null, 2)
-        )
-      );
-    } else if (excuseTrigger.some((e) => input.includes(e))) {
-      addReceivedMessage(
-        await $fetch("https://excuser.herokuapp.com/v1/excuse").then(
-          (resp: any) => resp[0].excuse
-        )
-      );
-    } else if (coffeeTrigger.some((e) => input.includes(e))) {
-      addReceivedMessage(
-        "Coffee",
-        `https://coffee.alexflipnote.dev/random?${new Date().toISOString()}`
-      );
-      scrollTop(500);
-    } else if (duckTrigger.some((e) => input.includes(e))) {
-      addReceivedMessage(
-        "A Duck",
-        `https://random-d.uk/api/v2/randomimg?${new Date().toISOString()}`
-      );
-      scrollTop(500);
-    } else if (startupIdeaTrigger.some((e) => input.includes(e))) {
-      addReceivedMessage(
-        await $fetch("https://itsthisforthat.com/api.php?text").then(
-          (resp: any) => resp[0].excuse
-        )
-      );
-    } else {
-      addReceivedMessage(
-        `Cat says ${input}`,
-        `https://cataas.com/cat/says/${input}`
-      );
-      scrollTop(500);
-    }
-    scrollTop();
-  }, 1000);
-
-  */
-
-  scrollTop();
-
-  chat.value = "";
-};
+    if(messages.value[length]) messages.value[length].readed = true
+  }, 500)
+  
+  askCowGPT()
+  scrollTop()
+  chat.value = ""
+}
 
 /* Mounted */
 
 onMounted(() => {
-
-  watch(chat_id, (chat_id, previous) => {
+  watch(chat_id, (chat_id) => {
     router.push({
       path: '/',
       query: { chat: chat_id },
     })
   })
 
-  if (chat_id.value && ["new", "neu"].includes(chat_id.value.toLowerCase())) { }
-  else if (chat_id.value) continueCowGPT(chat_id.value)
-  else {
+  if (chat_id.value && ["new", "neu"].includes(chat_id.value.toLowerCase())) { 
+    // New chat - do nothing
+  } else if (chat_id.value) {
+    continueCowGPT(chat_id.value)
+  } else {
     messages.value.push({
       readed: true,
       value: "Was ist letzte Nacht passiert?",
       time: moment().format("H:mm"),
-      type: messageType.Sender,
-    });
+      type: MessageType.Sender,
+    })
     messages.value.push({
       readed: false,
       value: "Du warst betrunken.",
       time: moment().format("H:mm"),
-      type: messageType.Received,
-    });
+      type: MessageType.Received,
+    })
     messages.value.push({
       readed: true,
       value: "Nein, das war ich nicht.",
       time: moment().format("H:mm"),
-      type: messageType.Sender,
-    });
-    /*
-    messages.value.push({
-      readed: false,
-      value: memes.value[Math.floor(Math.random() * memes.value.length)],
-      time: moment().format("H:mm"),
-      type: messageType.Received,
-    });
-    messages.value.push({
-      readed: true,
-      value: "Sprich Deutsch du Hurensohn",
-      time: moment().format("H:mm"),
-      type: messageType.Sender,
-    });
-    */
+      type: MessageType.Sender,
+    })
 
-    askCowGPT();
+    askCowGPT()
   }
 
-  setInterval(function () {
-    deviceTime.value = moment().format("H:mm");
-  }, 1000);
-});
+  // Update device time every minute instead of every second for better performance
+  setInterval(() => {
+    deviceTime.value = moment().format("H:mm")
+  }, 60000)
+})
 </script>
 
 <style>

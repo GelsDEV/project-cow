@@ -1,43 +1,65 @@
 <script setup lang="ts">
 const route = useRoute()
-let page = route.query.page ? parseInt(String(route.query.page)) : 1
-const history = ref([] as Array<any>);
-const fetchResult = ref({ ok: true, message: "", size: 0 })
+const page = ref(route.query.page ? parseInt(String(route.query.page)) : 1)
+const history = ref<any[]>([])
 
 useHead({
-    title: 'Dunklekuh — Chatverlauf',
-    script: [
-        {
-            type: "module",
-            src: "https://md-block.verou.me/md-block.js",
-        }
-    ],
+  title: 'Dunklekuh — Chatverlauf',
+  script: [
+    {
+      type: "module",
+      src: "https://md-block.verou.me/md-block.js",
+    }
+  ],
 })
 
-const loadLogs = (page: number) => {
-    const query = [];
-    if (route.query.token) query.push(`token=${route.query.token}`)
-    if (page > 0) query.push(`page=${page}`)
-    $fetch(`https://api.gels.dev/gpt/cow/history${query.length > 1 ? '?' + query.join('&') : ''}`)
-        .then((resp: any) => {
-            if (resp.ok) {
-                resp.data.forEach((e: any) => {
-                    e.debug = JSON.parse(e.debug)
-                    e.msg = JSON.parse(e.msg)
-                    e.logobject = e.logobject.replace('https://', '').replace('http://', '')
-                })
-                history.value.push(...resp.data)
-                fetchResult.value = { ok: resp.ok, message: resp.message, size: resp.data.length }
-            }
-        })
-        .catch((error) => {
-            fetchResult.value = error.data
-            fetchResult.value.size = 0
-        })
+// Reaktive URL für useFetch
+const apiUrl = computed(() => {
+  const query = []
+  if (route.query.token) query.push(`token=${route.query.token}`)
+  if (page.value > 0) query.push(`page=${page.value}`)
+  
+  const queryString = query.length > 0 ? '?' + query.join('&') : ''
+  return `https://api.gels.dev/gpt/cow/history${queryString}`
+})
+
+// useFetch mit automatischem Caching und Loading State
+const { data: fetchResult, pending, error, refresh } = await useFetch(apiUrl, {
+  key: 'chat-history',
+  transform: (response: any): { ok: boolean; message: string; size: number } => {
+    if (response?.ok && response?.data) {
+      // Daten verarbeiten
+      response.data.forEach((e: any) => {
+        e.debug = JSON.parse(e.debug)
+        e.msg = JSON.parse(e.msg)
+        e.logobject = e.logobject.replace(/^https?:\/\//, '')
+      })
+      
+      // Neue Daten zur Historie hinzufügen
+      if (page.value === 1) {
+        history.value = response.data
+      } else {
+        history.value.push(...response.data)
+      }
+    }
+    
+    return {
+      ok: response?.ok || false,
+      message: response?.message || (error.value ? 'Fehler beim Laden' : ''),
+      size: response?.data?.length || 0
+    }
+  },
+  default: () => ({ ok: true, message: "", size: 0 })
+})
+
+const loadMore = async () => {
+  page.value++
+  await refresh()
 }
 
-onMounted(() => {
-    loadLogs(page)
+// Watch für Seiten-Änderungen
+watch(page, () => {
+  refresh()
 })
 </script>
 
@@ -79,8 +101,8 @@ onMounted(() => {
                 </div>
             </div>
         </div>
-        <div class="loadmore" v-show="fetchResult.size >= 10">
-            <button class="button" @click="loadLogs(++page)">Mehr laden</button>
+        <div class="loadmore" v-show="fetchResult?.size >= 10">
+            <button class="button" @click="loadMore">Mehr laden</button>
         </div>
     </div>
 </template>
